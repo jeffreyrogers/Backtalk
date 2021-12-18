@@ -40,6 +40,14 @@ func main() {
 	r.Get("/", handlers.Home)
 	r.Get("/health", handlers.HealthCheck)
 
+	// REST API
+	r.Route("/comments", func(r chi.Router) {
+		r.Post("/{slug}", handlers.CreateComment)
+		r.Get("/{slug}", handlers.GetComments)
+		r.Delete("/{slug}/{id}", handlers.DeleteComment)
+		r.Put("/{slug}/{id}", handlers.EditComment)
+	})
+
 	log.Println("Starting server on port 8080")
 	http.ListenAndServe(":8000", r)
 }
