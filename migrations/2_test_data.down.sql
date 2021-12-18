@@ -1,2 +1,2 @@
 DELETE FROM comments
-WHERE slug = "test-slug";
+WHERE slug = 'test-slug';
