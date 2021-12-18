@@ -1,0 +1,6 @@
+# TODO
+
+- Add rest API for creating and viewing comments
+- Add admin page with authentication where I can moderate comments
+- Create some way of allowing users to authenticate themselves and edit/delete their own comments
+- Add comment threading
