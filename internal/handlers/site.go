@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+func Home(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("hello world"))
+}
+
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	comments, err := models.Queries.GetComments(models.Ctx, "test-slug")
 	if err != nil {
