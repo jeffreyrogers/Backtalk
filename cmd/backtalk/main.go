@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/handlers"
 	"github.com/jeffreyrogers/backtalk/internal/models"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
@@ -24,8 +27,14 @@ import (
 func main() {
 	models.Ctx = context.Background()
 
+	_, isProd := os.LookupEnv("BACKTALK_DEV")
+	authString := os.Getenv("BACKTALK_AUTH_KEY")
+	authKey, err := base64.StdEncoding.DecodeString(authString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// most of the connection string arguments are handled via environment variables (e.g. PGHOST, PGPASS, etc.)
-	var err error
 	models.DB, err = sql.Open("postgres", "application_name=backtalk idle_in_transaction_session_timeout=10000 statement_timeout=10000")
 	if err != nil {
 		log.Fatal(err)
@@ -48,6 +57,9 @@ func main() {
 		r.Put("/{slug}/{id}", handlers.EditComment)
 	})
 
+	options := csrf.Secure(isProd)
+	CSRF := csrf.Protect(authKey, options)
+
 	log.Println("Starting server on port 8080")
-	http.ListenAndServe(":8000", r)
+	http.ListenAndServe(":8000", CSRF(r))
 }
