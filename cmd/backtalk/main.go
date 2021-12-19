@@ -57,9 +57,18 @@ func main() {
 		r.Put("/{slug}/{id}", handlers.EditComment)
 	})
 
+	r.Mount("/admin", adminRouter())
+
 	options := csrf.Secure(isProd)
 	CSRF := csrf.Protect(authKey, options)
 
 	log.Println("Starting server on port 8080")
 	http.ListenAndServe(":8000", CSRF(r))
+}
+
+func adminRouter() http.Handler {
+	r := chi.NewRouter()
+	r.Use(handlers.AdminOnly)
+	r.Get("/", handlers.AdminHome)
+	return r
 }

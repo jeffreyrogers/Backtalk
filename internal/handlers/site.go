@@ -1,12 +1,20 @@
 package handlers
 
 import (
+	"crypto/subtle"
 	"github.com/jeffreyrogers/backtalk/internal/models"
+	"github.com/jeffreyrogers/backtalk/internal/sessions"
+
 	"net/http"
 )
 
+// TODO: make this a login page and redirect to admin page if logged in
 func Home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("hello world"))
+}
+
+func AdminHome(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Hello admin"))
 }
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
@@ -39,4 +47,38 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	w.Write([]byte("200 OK"))
+}
+
+func AdminOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !loggedIn(r) {
+			http.Redirect(w, r, "/", 302)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func loggedIn(r *http.Request) bool {
+	sessionKeyCookie, err := r.Cookie("sessionKey")
+	if err != nil {
+		return false
+	}
+
+	sessionID, ok := sessions.SessionIDValid(sessionKeyCookie.Value)
+	if !ok {
+		return false
+	}
+
+	session, err := models.Queries.GetSession(models.Ctx, sessionID)
+	if err != nil {
+		return false
+	}
+
+	if subtle.ConstantTimeCompare([]byte(session.SessionID), []byte(sessionID)) == 1 {
+		return true
+	} else {
+		return false
+	}
 }

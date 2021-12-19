@@ -10,13 +10,13 @@ CREATE TABLE comments (
 CREATE TABLE users (
   id       SERIAL  PRIMARY KEY,
   email    text    UNIQUE NOT NULL,
-  hash     text    NOT NULL,
-  salt     text    NOT NULL,
+  hash     bytea   NOT NULL,
+  salt     bytea   NOT NULL,
   is_admin boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE sessions (
-  session_key text        PRIMARY KEY,
+  session_id  bytea       PRIMARY KEY,
   uid         serial      NOT NULL REFERENCES users,
   login_time  timestamptz NOT NULL DEFAULT NOW(),
   last_seen   timestamptz NOT NULL DEFAULT NOW()

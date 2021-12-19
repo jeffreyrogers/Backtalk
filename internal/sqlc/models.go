@@ -15,16 +15,16 @@ type Comment struct {
 }
 
 type Session struct {
-	SessionKey string
-	Uid        int32
-	LoginTime  time.Time
-	LastSeen   time.Time
+	SessionID []byte
+	Uid       int32
+	LoginTime time.Time
+	LastSeen  time.Time
 }
 
 type User struct {
 	ID      int32
 	Email   string
-	Hash    string
-	Salt    string
+	Hash    []byte
+	Salt    []byte
 	IsAdmin bool
 }

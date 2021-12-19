@@ -37,19 +37,19 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 
 const createSession = `-- name: CreateSession :exec
 INSERT INTO sessions (
-  session_key, uid  
+  session_id, uid  
 ) VALUES (
   $1, $2
 )
 `
 
 type CreateSessionParams struct {
-	SessionKey string
-	Uid        int32
+	SessionID []byte
+	Uid       int32
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
-	_, err := q.db.ExecContext(ctx, createSession, arg.SessionKey, arg.Uid)
+	_, err := q.db.ExecContext(ctx, createSession, arg.SessionID, arg.Uid)
 	return err
 }
 
@@ -64,8 +64,8 @@ RETURNING id, email, hash, salt, is_admin
 
 type CreateUserParams struct {
 	Email string
-	Hash  string
-	Salt  string
+	Hash  []byte
+	Salt  []byte
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -137,15 +137,15 @@ func (q *Queries) GetComments(ctx context.Context, slug string) ([]Comment, erro
 }
 
 const getSession = `-- name: GetSession :one
-SELECT session_key, uid, login_time, last_seen FROM sessions
-WHERE uid = $1
+SELECT session_id, uid, login_time, last_seen FROM sessions
+WHERE session_id = $1
 `
 
-func (q *Queries) GetSession(ctx context.Context, uid int32) (Session, error) {
-	row := q.db.QueryRowContext(ctx, getSession, uid)
+func (q *Queries) GetSession(ctx context.Context, sessionID []byte) (Session, error) {
+	row := q.db.QueryRowContext(ctx, getSession, sessionID)
 	var i Session
 	err := row.Scan(
-		&i.SessionKey,
+		&i.SessionID,
 		&i.Uid,
 		&i.LoginTime,
 		&i.LastSeen,

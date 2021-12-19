@@ -33,11 +33,11 @@ WHERE last_seen < now() - interval '1 month';
 
 -- name: GetSession :one
 SELECT * FROM sessions
-WHERE uid = $1;
+WHERE session_id = $1;
 
 -- name: CreateSession :exec
 INSERT INTO sessions (
-  session_key, uid  
+  session_id, uid  
 ) VALUES (
   $1, $2
 );
