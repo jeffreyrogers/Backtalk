@@ -13,3 +13,18 @@ type Comment struct {
 	Author  string
 	Content string
 }
+
+type Session struct {
+	SessionKey string
+	Uid        int32
+	LoginTime  time.Time
+	LastSeen   time.Time
+}
+
+type User struct {
+	ID      int32
+	Email   string
+	Hash    string
+	Salt    string
+	IsAdmin bool
+}

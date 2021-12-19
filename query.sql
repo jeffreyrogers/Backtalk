@@ -14,3 +14,30 @@ ORDER BY created;
 -- name: DeleteComment :exec
 DELETE FROM comments
 WHERE id = $1;
+
+-- name: GetUser :one
+SELECT * FROM users
+WHERE email = $1;
+
+-- name: CreateUser :one
+INSERT INTO users (
+  email, hash, salt
+) VALUES (
+  $1, $2, $3
+)
+RETURNING *;
+
+-- name: DeleteOldSessions :exec
+DELETE FROM sessions
+WHERE last_seen < now() - interval '1 month';
+
+-- name: GetSession :one
+SELECT * FROM sessions
+WHERE uid = $1;
+
+-- name: CreateSession :exec
+INSERT INTO sessions (
+  session_key, uid  
+) VALUES (
+  $1, $2
+);

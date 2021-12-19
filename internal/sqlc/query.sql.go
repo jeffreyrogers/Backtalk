@@ -35,6 +35,52 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 	return i, err
 }
 
+const createSession = `-- name: CreateSession :exec
+INSERT INTO sessions (
+  session_key, uid  
+) VALUES (
+  $1, $2
+)
+`
+
+type CreateSessionParams struct {
+	SessionKey string
+	Uid        int32
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
+	_, err := q.db.ExecContext(ctx, createSession, arg.SessionKey, arg.Uid)
+	return err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+  email, hash, salt
+) VALUES (
+  $1, $2, $3
+)
+RETURNING id, email, hash, salt, is_admin
+`
+
+type CreateUserParams struct {
+	Email string
+	Hash  string
+	Salt  string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Hash, arg.Salt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Hash,
+		&i.Salt,
+		&i.IsAdmin,
+	)
+	return i, err
+}
+
 const deleteComment = `-- name: DeleteComment :exec
 DELETE FROM comments
 WHERE id = $1
@@ -42,6 +88,16 @@ WHERE id = $1
 
 func (q *Queries) DeleteComment(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteComment, id)
+	return err
+}
+
+const deleteOldSessions = `-- name: DeleteOldSessions :exec
+DELETE FROM sessions
+WHERE last_seen < now() - interval '1 month'
+`
+
+func (q *Queries) DeleteOldSessions(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteOldSessions)
 	return err
 }
 
@@ -78,4 +134,39 @@ func (q *Queries) GetComments(ctx context.Context, slug string) ([]Comment, erro
 		return nil, err
 	}
 	return items, nil
+}
+
+const getSession = `-- name: GetSession :one
+SELECT session_key, uid, login_time, last_seen FROM sessions
+WHERE uid = $1
+`
+
+func (q *Queries) GetSession(ctx context.Context, uid int32) (Session, error) {
+	row := q.db.QueryRowContext(ctx, getSession, uid)
+	var i Session
+	err := row.Scan(
+		&i.SessionKey,
+		&i.Uid,
+		&i.LoginTime,
+		&i.LastSeen,
+	)
+	return i, err
+}
+
+const getUser = `-- name: GetUser :one
+SELECT id, email, hash, salt, is_admin FROM users
+WHERE email = $1
+`
+
+func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Hash,
+		&i.Salt,
+		&i.IsAdmin,
+	)
+	return i, err
 }
