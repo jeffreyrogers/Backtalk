@@ -62,7 +62,7 @@ func main() {
 	options := csrf.Secure(isProd)
 	CSRF := csrf.Protect(authKey, options)
 
-	log.Println("Starting server on port 8080")
+	log.Println("Starting server on port 8000")
 	http.ListenAndServe(":8000", CSRF(r))
 }
 
