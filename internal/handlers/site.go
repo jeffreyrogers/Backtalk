@@ -8,8 +8,13 @@ import (
 	"net/http"
 )
 
-// TODO: make this a login page and redirect to admin page if logged in
 func Home(w http.ResponseWriter, r *http.Request) {
+	// FIXME: this is a hack. The admin will always have uid == 0, so this is fine,
+	// but we should actually verify that the uid returned has admin permissions.
+	if loggedIn(r) == 0 {
+		http.Redirect(w, r, "/admin", 302)
+		return
+	}
 	w.Write([]byte("hello world"))
 }
 
@@ -51,7 +56,9 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 func AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !loggedIn(r) {
+		// FIXME: this is a hack. The admin will always have uid == 0, so this is fine,
+		// but we should actually verify that the uid returned has admin permissions.
+		if loggedIn(r) != 0 {
 			http.Redirect(w, r, "/", 302)
 			return
 		}
@@ -60,25 +67,26 @@ func AdminOnly(next http.Handler) http.Handler {
 	})
 }
 
-func loggedIn(r *http.Request) bool {
+// returns uid of logged in user, -1 if not logged in
+func loggedIn(r *http.Request) int32 {
 	sessionKeyCookie, err := r.Cookie("sessionKey")
 	if err != nil {
-		return false
+		return -1
 	}
 
 	sessionID, ok := sessions.SessionIDValid(sessionKeyCookie.Value)
 	if !ok {
-		return false
+		return -1
 	}
 
 	session, err := models.Queries.GetSession(models.Ctx, sessionID)
 	if err != nil {
-		return false
+		return -1
 	}
 
 	if subtle.ConstantTimeCompare([]byte(session.SessionID), []byte(sessionID)) == 1 {
-		return true
+		return session.Uid
 	} else {
-		return false
+		return -1
 	}
 }
