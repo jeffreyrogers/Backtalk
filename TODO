@@ -4,7 +4,6 @@
 
 - Add rest API for creating and viewing comments
 - Add comment moderation
-- Cron job or something similar to clear out old sessions
 
 ## Improvements
 

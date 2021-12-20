@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,6 +28,9 @@ import (
 func main() {
 	globals.Ctx = context.Background()
 
+	ticker := time.NewTicker(time.Hour)
+	done := make(chan bool)
+
 	_, isProd := os.LookupEnv("BACKTALK_DEV")
 	authString := os.Getenv("BACKTALK_AUTH_KEY")
 
@@ -45,6 +49,22 @@ func main() {
 	// I have no idea if this is an appropriate number or not. Will have to benchmark to check, but doesn't matter for now.
 	globals.DB.SetMaxOpenConns(20)
 	globals.Queries = sqlc.New(globals.DB)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				// run cleanup
+				err := globals.Queries.DeleteOldSessions(globals.Ctx)
+				if err != nil {
+					log.Println("Failed to delete expired sessions: %v", err)
+				}
+				log.Println("Checking for expired sessions")
+			}
+		}
+	}()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -69,6 +89,10 @@ func main() {
 
 	log.Println("Starting server on port 8000")
 	http.ListenAndServe(":8000", CSRF(r))
+
+	ticker.Stop()
+	done <- true
+	log.Println("Ticker stopped")
 }
 
 func adminRouter() http.Handler {
