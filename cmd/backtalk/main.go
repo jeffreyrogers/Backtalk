@@ -46,7 +46,10 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Get("/", handlers.Home)
+	r.Get("/", handlers.ShowLogin)
+	r.Post("/login", handlers.LoginUser)
+	r.Get("/register", handlers.ShowRegister)
+	r.Post("/register", handlers.RegisterUser)
 	r.Get("/health", handlers.HealthCheck)
 
 	// REST API

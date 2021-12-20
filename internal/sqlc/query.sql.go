@@ -7,6 +7,34 @@ import (
 	"context"
 )
 
+const createAdminUser = `-- name: CreateAdminUser :one
+INSERT INTO users (
+  email, hash, salt, is_admin
+) VALUES (
+  $1, $2, $3, true
+)
+RETURNING id, email, hash, salt, is_admin
+`
+
+type CreateAdminUserParams struct {
+	Email string
+	Hash  []byte
+	Salt  []byte
+}
+
+func (q *Queries) CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createAdminUser, arg.Email, arg.Hash, arg.Salt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Hash,
+		&i.Salt,
+		&i.IsAdmin,
+	)
+	return i, err
+}
+
 const createComment = `-- name: CreateComment :one
 INSERT INTO comments (
   slug, author, content
@@ -169,4 +197,15 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 		&i.IsAdmin,
 	)
 	return i, err
+}
+
+const usersPopulated = `-- name: UsersPopulated :one
+SELECT EXISTS (SELECT true FROM users LIMIT 1)
+`
+
+func (q *Queries) UsersPopulated(ctx context.Context) (bool, error) {
+	row := q.db.QueryRowContext(ctx, usersPopulated)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

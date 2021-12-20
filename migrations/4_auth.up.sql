@@ -9,6 +9,6 @@ CREATE TABLE users (
 CREATE TABLE sessions (
   session_id  bytea       PRIMARY KEY,
   uid         serial      NOT NULL REFERENCES users,
-  login_time  timestamptz NOT NULL,
-  last_seen   timestamptz NOT NULL
+  login_time  timestamptz NOT NULL DEFAULT NOW(),
+  last_seen   timestamptz NOT NULL DEFAULT NOW()
 );

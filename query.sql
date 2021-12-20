@@ -19,6 +19,14 @@ WHERE id = $1;
 SELECT * FROM users
 WHERE email = $1;
 
+-- name: CreateAdminUser :one
+INSERT INTO users (
+  email, hash, salt, is_admin
+) VALUES (
+  $1, $2, $3, true
+)
+RETURNING *;
+
 -- name: CreateUser :one
 INSERT INTO users (
   email, hash, salt
@@ -41,3 +49,6 @@ INSERT INTO sessions (
 ) VALUES (
   $1, $2
 );
+
+-- name: UsersPopulated :one 
+SELECT EXISTS (SELECT true FROM users LIMIT 1);

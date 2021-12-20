@@ -3,14 +3,16 @@
 ## Core Functionality
 
 - Add rest API for creating and viewing comments
-- Add admin page with authentication where I can moderate comments
+- Add comment moderation
 - Cron job or something similar to clear out old sessions
 
 ## Improvements
 
 - Store environment variables as globals
+- Validate emails and passwords
 - Remove log.Fatals and os.Exit calls
 - Use a join in the logged in function to get user permissions directly?
-- Tool to generate secrets/passwords
 - Create some way of allowing users to authenticate themselves and edit/delete their own comments
 - Add comment threading
+- Add favicon
+- Add CSS styling

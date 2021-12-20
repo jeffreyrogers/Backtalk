@@ -1,4 +1,4 @@
-package sessions
+package crypto
 
 import (
 	"crypto/hmac"
@@ -33,7 +33,7 @@ func sign(message []byte) []byte {
 // Generate cryptographically random 32 byte string, sign with hmac, and return base64 encoded version
 // This base64 string can be stored in a cookie on the client to keep track of sessions. It should also be
 // stored in the DB.
-func GenerateSessionKey() string {
+func GenerateSessionKey() ([]byte, string) {
 	sessionID := make([]byte, 32)
 	_, err := rand.Read(sessionID)
 	if err != nil {
@@ -44,7 +44,7 @@ func GenerateSessionKey() string {
 	signature := sign(sessionID)
 	// TODO: check if there is a better way to concatenate two byte slices
 	rawSessionKey := append(sessionID, signature...)
-	return base64.StdEncoding.EncodeToString(rawSessionKey)
+	return sessionID, base64.StdEncoding.EncodeToString(rawSessionKey)
 }
 
 func SessionIDValid(key string) ([]byte, bool) {
@@ -60,11 +60,11 @@ func SessionIDValid(key string) ([]byte, bool) {
 	return sessionID, hmac.Equal(signature, computedSignature)
 }
 
-func Hash(password, salt []byte) []byte {
-	return argon2.IDKey(password, salt, 1, 64*1024, 4, 32)
+func Hash(password string, salt []byte) []byte {
+	return argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32)
 }
 
-func PasswordValid(validHash, password, salt []byte) bool {
+func PasswordValid(validHash []byte, password string, salt []byte) bool {
 	hash := Hash(password, salt)
 	if subtle.ConstantTimeCompare(validHash, hash) == 1 {
 		return true
