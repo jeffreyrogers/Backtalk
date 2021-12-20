@@ -94,9 +94,6 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	log.Printf("Email: %s", email)
-	log.Printf("Password: %s", password)
-
 	salt := crypto.GenerateSalt()
 	hash := crypto.Hash(password, salt)
 
