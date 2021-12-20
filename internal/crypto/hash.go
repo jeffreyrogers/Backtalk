@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -24,8 +25,7 @@ func GenerateSalt() []byte {
 }
 
 func sign(message []byte) []byte {
-	hmacKey := os.Getenv("BACKTALK_AUTH_KEY")
-	h := hmac.New(sha512.New512_256, []byte(hmacKey))
+	h := hmac.New(sha512.New512_256, globals.AuthKey)
 	h.Write(message)
 	return h.Sum(nil)
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/crypto"
-	"github.com/jeffreyrogers/backtalk/internal/models"
+	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
 	"github.com/jeffreyrogers/backtalk/resources"
 )
@@ -78,7 +78,7 @@ func ShowRegister(w http.ResponseWriter, r *http.Request) {
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	// Can only register a user if there are no users in the user table.
-	populated, err := models.Queries.UsersPopulated(models.Ctx)
+	populated, err := globals.Queries.UsersPopulated(globals.Ctx)
 	if err != nil {
 		log.Printf("Error running UsersPopulated query: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -97,7 +97,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	salt := crypto.GenerateSalt()
 	hash := crypto.Hash(password, salt)
 
-	_, err = models.Queries.CreateAdminUser(models.Ctx, sqlc.CreateAdminUserParams{email, hash, salt})
+	_, err = globals.Queries.CreateAdminUser(globals.Ctx, sqlc.CreateAdminUserParams{email, hash, salt})
 	if err != nil {
 		log.Printf("Error inserting admin user into database: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -116,7 +116,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Password: %s", password)
 
 	// get associated user from db
-	user, err := models.Queries.GetUser(models.Ctx, email)
+	user, err := globals.Queries.GetUser(globals.Ctx, email)
 	if err != nil {
 		// TODO: set a cookie so that the form can alert the user of the problem
 		log.Printf("Unable to get user: %v", err)
@@ -134,7 +134,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	id, key := crypto.GenerateSessionKey()
 
 	// store id in database
-	err = models.Queries.CreateSession(models.Ctx, sqlc.CreateSessionParams{id, user.ID})
+	err = globals.Queries.CreateSession(globals.Ctx, sqlc.CreateSessionParams{id, user.ID})
 	if err != nil {
 		log.Printf("Error inserting session into database: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -159,7 +159,7 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	comments, err := models.Queries.GetComments(models.Ctx, "test-slug")
+	comments, err := globals.Queries.GetComments(globals.Ctx, "test-slug")
 	if err != nil {
 		w.WriteHeader(503)
 		w.Write([]byte("503 Service Unavailable"))
@@ -215,7 +215,7 @@ func loggedIn(r *http.Request) int32 {
 		return -1
 	}
 
-	session, err := models.Queries.GetSession(models.Ctx, sessionID)
+	session, err := globals.Queries.GetSession(globals.Ctx, sessionID)
 	if err != nil {
 		return -1
 	}

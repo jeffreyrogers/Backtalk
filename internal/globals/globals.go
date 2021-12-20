@@ -1,4 +1,4 @@
-package models
+package globals
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
 )
 
+var AuthKey []byte
 var DB *sql.DB
 var Queries *sqlc.Queries
 var Ctx context.Context

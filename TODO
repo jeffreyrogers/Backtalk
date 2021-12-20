@@ -8,7 +8,6 @@
 
 ## Improvements
 
-- Store environment variables as globals
 - Validate emails and passwords
 - Remove log.Fatals and os.Exit calls
 - Use a join in the logged in function to get user permissions directly?
