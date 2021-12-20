@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crypto/subtle"
 	"embed"
 	"html/template"
 	"log"
@@ -21,9 +20,8 @@ func init() {
 }
 
 func ShowLogin(w http.ResponseWriter, r *http.Request) {
-	// FIXME: this is a hack. The admin will always have uid == 0, so this is fine,
-	// but we should actually verify that the uid returned has admin permissions.
-	if loggedIn(r) == 0 {
+	isAdmin, _ := loggedIn(r)
+	if isAdmin {
 		http.Redirect(w, r, "/admin", 302)
 		return
 	}
@@ -49,9 +47,8 @@ func ShowLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowRegister(w http.ResponseWriter, r *http.Request) {
-	// FIXME: this is a hack. The admin will always have uid == 0, so this is fine,
-	// but we should actually verify that the uid returned has admin permissions.
-	if loggedIn(r) == 0 {
+	isAdmin, _ := loggedIn(r)
+	if isAdmin {
 		http.Redirect(w, r, "/admin", 302)
 		return
 	}
@@ -111,9 +108,6 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	// get email and password
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-
-	log.Printf("Email: %s", email)
-	log.Printf("Password: %s", password)
 
 	// get associated user from db
 	user, err := globals.Queries.GetUser(globals.Ctx, email)
@@ -192,9 +186,8 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 func AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// FIXME: this is a hack. The admin will always have uid == 0, so this is fine,
-		// but we should actually verify that the uid returned has admin permissions.
-		if loggedIn(r) != 0 {
+		isAdmin, _ := loggedIn(r)
+		if !isAdmin {
 			http.Redirect(w, r, "/", 302)
 			return
 		}
@@ -203,26 +196,26 @@ func AdminOnly(next http.Handler) http.Handler {
 	})
 }
 
-// returns uid of logged in user, -1 if not logged in
-func loggedIn(r *http.Request) int32 {
+// returns uid of logged in user.
+// if user is not logged in return -1
+// also return true if user has admin permissions, false otherwise
+func loggedIn(r *http.Request) (bool, int32) {
 	sessionKeyCookie, err := r.Cookie("sessionKey")
 	if err != nil {
-		return -1
+		return false, -1
 	}
 
 	sessionID, ok := crypto.SessionIDValid(sessionKeyCookie.Value)
 	if !ok {
-		return -1
+		log.Println("Invalid session id")
+		return false, -1
 	}
 
-	session, err := globals.Queries.GetSession(globals.Ctx, sessionID)
+	user, err := globals.Queries.GetUserFromSession(globals.Ctx, sessionID)
 	if err != nil {
-		return -1
+		log.Printf("Could not get user from session: %v", err)
+		return false, -1
 	}
 
-	if subtle.ConstantTimeCompare([]byte(session.SessionID), []byte(sessionID)) == 1 {
-		return session.Uid
-	} else {
-		return -1
-	}
+	return user.IsAdmin, user.ID
 }

@@ -199,6 +199,23 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 	return i, err
 }
 
+const getUserFromSession = `-- name: GetUserFromSession :one
+SELECT users.id, users.is_admin FROM users
+WHERE id = (SELECT uid FROM sessions WHERE session_id = $1)
+`
+
+type GetUserFromSessionRow struct {
+	ID      int32
+	IsAdmin bool
+}
+
+func (q *Queries) GetUserFromSession(ctx context.Context, sessionID []byte) (GetUserFromSessionRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserFromSession, sessionID)
+	var i GetUserFromSessionRow
+	err := row.Scan(&i.ID, &i.IsAdmin)
+	return i, err
+}
+
 const usersPopulated = `-- name: UsersPopulated :one
 SELECT EXISTS (SELECT true FROM users LIMIT 1)
 `

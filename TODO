@@ -10,7 +10,6 @@
 
 - Validate emails and passwords
 - Remove log.Fatals and os.Exit calls
-- Use a join in the logged in function to get user permissions directly?
 - Create some way of allowing users to authenticate themselves and edit/delete their own comments
 - Add comment threading
 - Add favicon

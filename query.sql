@@ -52,3 +52,7 @@ INSERT INTO sessions (
 
 -- name: UsersPopulated :one 
 SELECT EXISTS (SELECT true FROM users LIMIT 1);
+
+-- name: GetUserFromSession :one
+SELECT users.id, users.is_admin FROM users
+WHERE id = (SELECT uid FROM sessions WHERE session_id = $1);
