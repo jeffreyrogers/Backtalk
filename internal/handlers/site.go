@@ -5,8 +5,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/csrf"
+	// "github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/crypto"
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
@@ -135,13 +137,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO set expires and also refresh expires
+	secondsToExpiration := 60 * 60 * 24 * 30
+
 	cookie := &http.Cookie{
 		Name:     "sessionKey",
 		Value:    key,
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
+		MaxAge:   secondsToExpiration,
+		Expires:  time.Now().Add(time.Duration(secondsToExpiration) * time.Second),
 	}
 	http.SetCookie(w, cookie)
 
@@ -192,8 +197,21 @@ func AdminOnly(next http.Handler) http.Handler {
 			return
 		}
 
+		updateCookieExpiration(w, r)
 		next.ServeHTTP(w, r)
 	})
+}
+
+func updateCookieExpiration(w http.ResponseWriter, r *http.Request) {
+	// we can ignore the error because just prior to calling this we successfully got the cookie in the loggedIn() function.
+	c, _ := r.Cookie("sessionKey")
+	secondsToExpiration := 60 * 60 * 24 * 30
+	c.MaxAge = secondsToExpiration
+	c.Expires = time.Now().Add(time.Duration(secondsToExpiration) * time.Second)
+	c.Path = "/"
+	c.Secure = true
+	c.HttpOnly = true
+	http.SetCookie(w, c)
 }
 
 // returns uid of logged in user.
