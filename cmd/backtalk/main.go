@@ -31,7 +31,6 @@ func main() {
 	ticker := time.NewTicker(time.Hour)
 	done := make(chan bool)
 
-	_, isProd := os.LookupEnv("BACKTALK_DEV")
 	authString := os.Getenv("BACKTALK_AUTH_KEY")
 
 	var err error
@@ -83,9 +82,7 @@ func main() {
 	})
 
 	r.Mount("/admin", adminRouter())
-
-	options := csrf.Secure(isProd)
-	CSRF := csrf.Protect(globals.AuthKey, options)
+	CSRF := csrf.Protect(globals.AuthKey)
 
 	log.Println("Starting server on port 8000")
 	http.ListenAndServe(":8000", CSRF(r))
