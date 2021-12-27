@@ -2,6 +2,7 @@
 
 ## Core Functionality
 
+- Replace gorilla/csrf with a custom implementation
 - Add rest API for creating and viewing comments
 - Add comment moderation
 
