@@ -42,7 +42,6 @@ func GenerateSessionKey() ([]byte, string) {
 	}
 
 	signature := sign(sessionID)
-	// TODO: check if there is a better way to concatenate two byte slices
 	rawSessionKey := append(sessionID, signature...)
 	return sessionID, base64.StdEncoding.EncodeToString(rawSessionKey)
 }
