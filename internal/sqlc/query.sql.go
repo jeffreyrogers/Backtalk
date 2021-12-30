@@ -216,6 +216,17 @@ func (q *Queries) GetUserFromSession(ctx context.Context, sessionID []byte) (Get
 	return i, err
 }
 
+const updateSessionLastSeen = `-- name: UpdateSessionLastSeen :exec
+UPDATE sessions
+SET last_seen = NOW()
+WHERE session_id = $1
+`
+
+func (q *Queries) UpdateSessionLastSeen(ctx context.Context, sessionID []byte) error {
+	_, err := q.db.ExecContext(ctx, updateSessionLastSeen, sessionID)
+	return err
+}
+
 const usersPopulated = `-- name: UsersPopulated :one
 SELECT EXISTS (SELECT true FROM users LIMIT 1)
 `

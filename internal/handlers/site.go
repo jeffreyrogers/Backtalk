@@ -249,6 +249,11 @@ func loggedIn(r *http.Request) (bool, int32) {
 		return false, -1
 	}
 
+	err = globals.Queries.UpdateSessionLastSeen(globals.Ctx, sessionID)
+	if err != nil {
+		log.Printf("Could not update last seen time for user with id %d", user.ID)
+	}
+
 	return user.IsAdmin, user.ID
 }
 
