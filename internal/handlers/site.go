@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"embed"
+	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/jeffreyrogers/backtalk/internal/crypto"
@@ -156,6 +159,18 @@ func AdminHome(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello admin"))
 }
 
+func ShowIP(w http.ResponseWriter, r *http.Request) {
+	ip, err := getIP(r)
+	if err != nil {
+		w.WriteHeader(503)
+		w.Write([]byte("Unable to Get IP Address"))
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte(ip))
+}
+
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	comments, err := globals.Queries.GetComments(globals.Ctx, "test-slug")
 	if err != nil {
@@ -235,4 +250,19 @@ func loggedIn(r *http.Request) (bool, int32) {
 	}
 
 	return user.IsAdmin, user.ID
+}
+
+func getIP(r *http.Request) (string, error) {
+	ips := r.Header.Get("X-FORWARDED-FOR")
+	if ips == "" {
+		return "", fmt.Errorf("No valid IP Found")
+	}
+
+	clientIP := strings.Split(ips, ",")[0]
+	parsedIP := net.ParseIP(clientIP)
+	if parsedIP != nil {
+		return clientIP, nil
+	}
+
+	return "", fmt.Errorf("No valid IP Found")
 }

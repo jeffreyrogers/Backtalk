@@ -8,7 +8,6 @@
 ## Improvements
 
 - Add a logout endpoint
-- Add a getIP function
 - Move csrf and crypto functionality into new package 'security'
 - Validate emails and passwords
 - Remove log.Fatals and os.Exit calls

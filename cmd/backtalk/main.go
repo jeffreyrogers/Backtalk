@@ -72,6 +72,7 @@ func main() {
 	r.Get("/register", handlers.ShowRegister)
 	r.Post("/register", handlers.RegisterUser)
 	r.Get("/health", handlers.HealthCheck)
+	r.Get("/ip", handlers.ShowIP)
 
 	// REST API
 	r.Route("/comments", func(r chi.Router) {
