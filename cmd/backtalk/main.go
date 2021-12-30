@@ -28,7 +28,7 @@ import (
 func main() {
 	globals.Ctx = context.Background()
 
-	ticker := time.NewTicker(time.Hour)
+	hourly := time.NewTicker(time.Hour)
 	done := make(chan bool)
 
 	authString := os.Getenv("BACKTALK_AUTH_KEY")
@@ -54,7 +54,7 @@ func main() {
 			select {
 			case <-done:
 				return
-			case <-ticker.C:
+			case <-hourly.C:
 				// run cleanup
 				err := globals.Queries.DeleteOldSessions(globals.Ctx)
 				if err != nil {
@@ -88,7 +88,7 @@ func main() {
 	log.Println("Starting server on port 8000")
 	http.ListenAndServe(":8000", CSRF(r))
 
-	ticker.Stop()
+	hourly.Stop()
 	done <- true
 	log.Println("Ticker stopped")
 }
