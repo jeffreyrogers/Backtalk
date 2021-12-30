@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/gorilla/csrf"
+	"github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/handlers"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"

@@ -10,7 +10,7 @@
   {{end}}
   
   <form method="POST" action="/login">
-    {{.csrfField}}
+    {{.csrf}}
     <div>
       <label for="email">Username:</label>
       <input type="email" name="email" id="email" required>

@@ -2,12 +2,14 @@
 
 ## Core Functionality
 
-- Replace gorilla/csrf with a custom implementation
 - Add rest API for creating and viewing comments
 - Add comment moderation
 
 ## Improvements
 
+- Add a logout endpoint
+- Add a getIP function
+- Move csrf and crypto functionality into new package 'security'
 - Validate emails and passwords
 - Remove log.Fatals and os.Exit calls
 - Create some way of allowing users to authenticate themselves and edit/delete their own comments

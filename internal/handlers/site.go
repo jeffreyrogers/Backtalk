@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/csrf"
-	// "github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/crypto"
+	"github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
 	"github.com/jeffreyrogers/backtalk/resources"
@@ -39,8 +38,8 @@ func ShowLogin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	data := map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(r),
-		"title":          "Backtalk Login",
+		csrf.CSRFTag: csrf.CSRFField(r),
+		"title":      "Backtalk Login",
 	}
 
 	if err := tpl.Execute(w, data); err != nil {
@@ -66,8 +65,8 @@ func ShowRegister(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	data := map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(r),
-		"title":          "Backtalk Register",
+		csrf.CSRFTag: csrf.CSRFField(r),
+		"title":      "Backtalk Register",
 	}
 
 	if err := tpl.Execute(w, data); err != nil {
