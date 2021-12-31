@@ -1,19 +1,13 @@
-package csrf
+package security
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha512"
 	"crypto/subtle"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"time"
-
-	"github.com/jeffreyrogers/backtalk/internal/globals"
 )
 
 type csrf struct {
@@ -47,7 +41,7 @@ func Protect(authKey []byte) func(http.Handler) http.Handler {
 func (cs *csrf) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token, err := getToken(r)
 	if err != nil {
-		token, err := otp()
+		token, err := GetRandomBytes(32)
 		if err != nil {
 			cs.errorHandler.ServeHTTP(w, r)
 			return
@@ -110,34 +104,6 @@ func token(r *http.Request) string {
 	return ""
 }
 
-func sign(message []byte) []byte {
-	h := hmac.New(sha512.New512_256, globals.AuthKey)
-	h.Write(message)
-	return h.Sum(nil)
-}
-
-func encode(token []byte) string {
-	signature := sign(token)
-	signedToken := append(token, signature...)
-	return base64.StdEncoding.EncodeToString(signedToken)
-}
-
-func decode(encoded string) ([]byte, error) {
-	decoded, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		return nil, err
-	}
-
-	token := decoded[:32]
-	signature := decoded[32:]
-	computedSignature := sign(token)
-	if hmac.Equal(signature, computedSignature) {
-		return token, nil
-	}
-
-	return nil, errors.New("Signatures do not match")
-}
-
 func getToken(r *http.Request) ([]byte, error) {
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
@@ -147,17 +113,8 @@ func getToken(r *http.Request) ([]byte, error) {
 	return decode(cookie.Value)
 }
 
-func otp() ([]byte, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
 func mask(token []byte, r *http.Request) string {
-	otp, err := otp()
+	otp, err := GetRandomBytes(32)
 	if err != nil {
 		return ""
 	}

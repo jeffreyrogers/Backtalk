@@ -9,7 +9,6 @@
 
 ## Improvements
 
-- Move csrf and crypto functionality into new package 'security'
 - Validate emails and passwords
-- Remove log.Fatals and os.Exit calls
 - Add CSS styling
+- Revist globals package. Is it actually needed?

@@ -11,9 +11,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/handlers"
+	"github.com/jeffreyrogers/backtalk/internal/security"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
 
 	_ "github.com/lib/pq"
@@ -85,7 +85,7 @@ func main() {
 	})
 
 	r.Mount("/admin", adminRouter())
-	CSRF := csrf.Protect(globals.AuthKey)
+	CSRF := security.Protect(globals.AuthKey)
 
 	log.Println("Starting server on port 8000")
 	http.ListenAndServe(":8000", CSRF(r))

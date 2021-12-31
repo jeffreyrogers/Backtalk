@@ -1,44 +1,26 @@
-package crypto
+package security
 
 import (
 	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha512"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"os"
 
-	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"golang.org/x/crypto/argon2"
 )
 
-func GenerateSalt() []byte {
-	salt := make([]byte, 16)
-	_, err := rand.Read(salt)
-	if err != nil {
-		fmt.Printf("error generating salt: %v\n", err)
-		os.Exit(1)
-	}
-
-	return salt
-}
-
-func sign(message []byte) []byte {
-	h := hmac.New(sha512.New512_256, globals.AuthKey)
-	h.Write(message)
-	return h.Sum(nil)
+func GenerateSalt() ([]byte, error) {
+	return GetRandomBytes(16)
 }
 
 // Generate cryptographically random 32 byte string, sign with hmac, and return base64 encoded version
 // This base64 string can be stored in a cookie on the client to keep track of sessions. It should also be
 // stored in the DB.
 func GenerateSessionKey() ([]byte, string) {
-	sessionID := make([]byte, 32)
-	_, err := rand.Read(sessionID)
+	sessionID, err := GetRandomBytes(32)
 	if err != nil {
 		fmt.Printf("error generating session ID: %v\n", err)
-		os.Exit(1)
+		return nil, ""
 	}
 
 	signature := sign(sessionID)
@@ -50,7 +32,7 @@ func SessionIDValid(key string) ([]byte, bool) {
 	decodedSessionKey, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
 		fmt.Printf("Error decoding session key: %v\n", err)
-		os.Exit(1)
+		return nil, false
 	}
 
 	sessionID := decodedSessionKey[:32]

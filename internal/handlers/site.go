@@ -10,9 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeffreyrogers/backtalk/internal/crypto"
-	"github.com/jeffreyrogers/backtalk/internal/csrf"
 	"github.com/jeffreyrogers/backtalk/internal/globals"
+	"github.com/jeffreyrogers/backtalk/internal/security"
 	"github.com/jeffreyrogers/backtalk/internal/sqlc"
 	"github.com/jeffreyrogers/backtalk/resources"
 )
@@ -47,8 +46,8 @@ func ShowLogin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	data := map[string]interface{}{
-		csrf.CSRFTag: csrf.CSRFField(r),
-		"title":      "Backtalk Login",
+		security.CSRFTag: security.CSRFField(r),
+		"title":          "Backtalk Login",
 	}
 
 	if err := tpl.Execute(w, data); err != nil {
@@ -74,8 +73,8 @@ func ShowRegister(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	data := map[string]interface{}{
-		csrf.CSRFTag: csrf.CSRFField(r),
-		"title":      "Backtalk Register",
+		security.CSRFTag: security.CSRFField(r),
+		"title":          "Backtalk Register",
 	}
 
 	if err := tpl.Execute(w, data); err != nil {
@@ -101,8 +100,14 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	salt := crypto.GenerateSalt()
-	hash := crypto.Hash(password, salt)
+	salt, err := security.GenerateSalt()
+	if err != nil {
+		log.Printf("Error generating salt")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	hash := security.Hash(password, salt)
 
 	_, err = globals.Queries.CreateAdminUser(globals.Ctx, sqlc.CreateAdminUserParams{email, hash, salt})
 	if err != nil {
@@ -128,14 +133,19 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !crypto.PasswordValid(user.Hash, password, user.Salt) {
+	if !security.PasswordValid(user.Hash, password, user.Salt) {
 		// TODO: set a cookie so that the form can alert the user of the problem
 		log.Printf("Password does not match")
 		http.Redirect(w, r, "/", 302)
 		return
 	}
 
-	id, key := crypto.GenerateSessionKey()
+	id, key := security.GenerateSessionKey()
+	if key == "" {
+		log.Print("Error generating session key")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	// store id in database
 	err = globals.Queries.CreateSession(globals.Ctx, sqlc.CreateSessionParams{id, user.ID})
@@ -243,7 +253,7 @@ func loggedIn(r *http.Request) (bool, int32) {
 		return false, -1
 	}
 
-	sessionID, ok := crypto.SessionIDValid(sessionKeyCookie.Value)
+	sessionID, ok := security.SessionIDValid(sessionKeyCookie.Value)
 	if !ok {
 		log.Println("Invalid session id")
 		return false, -1
