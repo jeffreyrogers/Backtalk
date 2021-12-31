@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/security"
@@ -305,6 +306,10 @@ func emailValid(email string) bool {
 }
 
 func passwordValid(password string) bool {
+	if utf8.RuneCountInString(password) < 8 {
+		return false
+	}
+
 	for _, char := range password {
 		if !unicode.IsGraphic(char) {
 			return false
