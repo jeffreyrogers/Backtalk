@@ -47,9 +47,5 @@ func Hash(password string, salt []byte) []byte {
 
 func PasswordValid(validHash []byte, password string, salt []byte) bool {
 	hash := Hash(password, salt)
-	if subtle.ConstantTimeCompare(validHash, hash) == 1 {
-		return true
-	} else {
-		return false
-	}
+	return subtle.ConstantTimeCompare(validHash, hash) == 1
 }
