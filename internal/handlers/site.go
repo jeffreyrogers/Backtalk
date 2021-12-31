@@ -7,8 +7,10 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/mail"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/jeffreyrogers/backtalk/internal/globals"
 	"github.com/jeffreyrogers/backtalk/internal/security"
@@ -98,7 +100,16 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	email := r.FormValue("email")
+	if !emailValid(email) {
+		// Todo: set cookie to alert user of problem
+		http.Redirect(w, r, "/register", 303)
+	}
+
 	password := r.FormValue("password")
+	if !passwordValid(password) {
+		// Todo: set cookie to alert user of problem
+		http.Redirect(w, r, "/register", 303)
+	}
 
 	salt, err := security.GenerateSalt()
 	if err != nil {
@@ -286,4 +297,19 @@ func getIP(r *http.Request) (string, error) {
 	}
 
 	return "", fmt.Errorf("No valid IP Found")
+}
+
+func emailValid(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
+
+func passwordValid(password string) bool {
+	for _, char := range password {
+		if !unicode.IsGraphic(char) {
+			return false
+		}
+	}
+
+	return true
 }

@@ -9,6 +9,5 @@
 
 ## Improvements
 
-- Validate emails and passwords
 - Add CSS styling
 - Revist globals package. Is it actually needed?
