@@ -9,3 +9,6 @@ import (
 
 //go:embed *.html
 var Res embed.FS
+
+//go:embed static
+var Static embed.FS

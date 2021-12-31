@@ -74,6 +74,8 @@ func main() {
 	r.Get("/health", handlers.HealthCheck)
 	r.Get("/ip", handlers.ShowIP)
 
+	r.Mount("/static", handlers.StaticRouter())
+
 	// REST API
 	r.Route("/comments", func(r chi.Router) {
 		r.Post("/{slug}", handlers.CreateComment)

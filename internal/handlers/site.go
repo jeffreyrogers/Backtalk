@@ -18,9 +18,15 @@ import (
 )
 
 var res embed.FS
+var static embed.FS
 
 func init() {
 	res = resources.Res
+	static = resources.Static
+}
+
+func StaticRouter() http.Handler {
+	return http.FileServer(http.FS(static))
 }
 
 func ShowLogin(w http.ResponseWriter, r *http.Request) {

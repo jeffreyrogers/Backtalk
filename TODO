@@ -4,14 +4,12 @@
 
 - Add rest API for creating and viewing comments
 - Add comment moderation
+- Add comment threading
+- Create some way of allowing users to authenticate themselves and edit/delete their own comments
 
 ## Improvements
 
-- Add a logout endpoint
 - Move csrf and crypto functionality into new package 'security'
 - Validate emails and passwords
 - Remove log.Fatals and os.Exit calls
-- Create some way of allowing users to authenticate themselves and edit/delete their own comments
-- Add comment threading
-- Add favicon
 - Add CSS styling
